@@ -1,0 +1,9 @@
+
+Fsquid:S1148"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8À¬ÿüü,
+[
+squid:S106"9Replace this use of System.out or System.err by a logger.(õš‡àúÿÿÿÿ8àÁıü,
+Jsquid:S1068",Remove this unused "username" private field.(‘ó¹²8Ñ¥óüü,
+Jsquid:S1068	"'Remove this unused "age" private field.(Æ†´¦şÿÿÿÿ8Ñ¥óüü,
+Hsquid:S2157"%Add a "clone()" method to this class.(Â¡ÑÇşÿÿÿÿ8©«Åıü,
+V
+squid:S106"9Replace this use of System.out or System.err by a logger.(Ø¼¢ƒ8¾€ıü,
