@@ -46,6 +46,10 @@ public class Object {
      */
     private static native void registerNatives();
     static {
+        /**
+         * 简单可以看成是这样：它干的事大概就是将Java层的方法名和本地函数对应起来，
+         * 方便执行引擎在执行字节码时根据这些对应关系表来调用C/C++函数
+         */
         registerNatives();
     }
 
@@ -228,6 +232,9 @@ public class Object {
      * 这个方法执行的是浅拷贝而不是深拷贝
      * 浅拷贝是指clone后的引用和原引用指向的是同一块堆内存
      * 深拷贝则是指向两个不同的对象
+     * 我们常见的类的对象的属性如果是原始类型则会克隆值，但如果是对象则会克隆对象的引用。
+     * Java的类要实现克隆则需要实现Cloneable接口，然后判断是否是数组分两种情况分配内存空间，
+     * 新对象为new_obj，接着对new_obj进行copy及C++层数据结构的设置。最后再转成jobject类型方便转成Java层的Object类型。
      */
     protected native Object clone() throws CloneNotSupportedException;
 
@@ -251,6 +258,9 @@ public class Object {
      * </pre></blockquote>
      *
      * @return  a string representation of the object.
+     */
+    /**
+     * 逻辑是获取class名称加上@再加上十六进制的hashCode。
      */
     public String toString() {
         return getClass().getName() + "@" + Integer.toHexString(hashCode());
@@ -474,6 +484,9 @@ public class Object {
      *             was waiting for a notification.  The <i>interrupted
      *             status</i> of the current thread is cleared when
      *             this exception is thrown.
+     */
+    /**
+     * timeout的单位为毫秒, 参数nanos 的单位为纳秒
      */
     public final void wait(long timeout, int nanos) throws InterruptedException {
         if (timeout < 0) {
