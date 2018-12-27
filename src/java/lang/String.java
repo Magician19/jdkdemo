@@ -108,6 +108,14 @@ import java.util.regex.PatternSyntaxException;
  * @since   JDK1.0
  */
 
+/**
+ *  Strings are constant; their values cannot be changed after they
+ *  are created. String buffers support mutable strings.
+ *  Because String objects are immutable they can be shared.
+ *  String 字符串是常量，其值在实例创建后就不能被修改，
+ *  但字符串缓冲区支持可变的字符串，
+ *  因为缓冲区里面的不可变字符串对象们可以被共享。（其实就是使对象的引用发生了改变）
+ */
 public final class String
     implements java.io.Serializable, Comparable<String>, CharSequence {
     /** The value is used for character storage. */
@@ -117,6 +125,12 @@ public final class String
     private int hash; // Default to 0
 
     /** use serialVersionUID from JDK 1.0.2 for interoperability */
+    /**
+     * Java 的序列化机制是通过在运行时判断类的 serialVersionUID 来验证版本一致性的。
+     * 在进行反序列化时，JVM 会把传来的字节流中的 serialVersionUID 与本地相应实体（类）
+     * 的 serialVersionUID 进行比较，如果相同就认为是一致的，可以进行反序列化，
+     * 否则就会出现序列化版本不一致的异常 (InvalidCastException)。
+     */
     private static final long serialVersionUID = -6849794470754667710L;
 
     /**
@@ -200,7 +214,7 @@ public final class String
                 return;
             }
         }
-        // Note: offset or count might be near -1>>>1.
+        // Note: offset or count might be near -1>>>1. 2^31-1 = 2147483647
         if (offset > value.length - count) {
             throw new StringIndexOutOfBoundsException(offset + count);
         }
@@ -248,7 +262,7 @@ public final class String
                 return;
             }
         }
-        // Note: offset or count might be near -1>>>1.
+        // Note: offset or count might be near -1>>>1. 2^31-1 = 2147483647
         if (offset > codePoints.length - count) {
             throw new StringIndexOutOfBoundsException(offset + count);
         }
@@ -682,6 +696,9 @@ public final class String
      *             string.
      * @since      1.5
      */
+    /**
+     * 返回指定索引处的字符（Unicode代码点）。
+     */
     public int codePointAt(int index) {
         if ((index < 0) || (index >= value.length)) {
             throw new StringIndexOutOfBoundsException(index);
@@ -711,6 +728,9 @@ public final class String
      *            of this string.
      * @since     1.5
      */
+    /**
+     * 返回指定索引之前的字符（Unicode代码点）。
+     */
     public int codePointBefore(int index) {
         int i = index - 1;
         if ((i < 0) || (i >= value.length)) {
@@ -739,6 +759,9 @@ public final class String
      * is larger than the length of this {@code String}, or
      * {@code beginIndex} is larger than {@code endIndex}.
      * @since  1.5
+     */
+    /**
+     * 返回此 String指定文本范围内的Unicode代码点数。
      */
     public int codePointCount(int beginIndex, int endIndex) {
         if (beginIndex < 0 || endIndex > value.length || beginIndex > endIndex) {
@@ -778,6 +801,9 @@ public final class String
     /**
      * Copy characters from this string into dst starting at dstBegin.
      * This method doesn't perform any range checking.
+     */
+    /**
+     * 将此字符串中的字符复制到目标字符数组中。
      */
     void getChars(char dst[], int dstBegin) {
         System.arraycopy(value, 0, dst, dstBegin, value.length);
@@ -912,6 +938,10 @@ public final class String
      *
      * @since  JDK1.1
      */
+
+    /**
+     *使用命名的字符集将此 String编码为字节序列，将结果存储到新的字节数组中。
+     */
     public byte[] getBytes(String charsetName)
             throws UnsupportedEncodingException {
         if (charsetName == null) throw new NullPointerException();
@@ -935,6 +965,9 @@ public final class String
      * @return  The resultant byte array
      *
      * @since  1.6
+     */
+    /**
+     * 使用给定的charset将该String编码为字节序列，将结果存储到新的字节数组中。
      */
     public byte[] getBytes(Charset charset) {
         if (charset == null) throw new NullPointerException();
@@ -1045,6 +1078,9 @@ public final class String
      *
      * @since  1.5
      */
+    /**
+     * 将此字符串与指定的CharSequence进行
+     */
     public boolean contentEquals(CharSequence cs) {
         // Argument is a StringBuffer, StringBuilder
         if (cs instanceof AbstractStringBuilder) {
@@ -1102,6 +1138,9 @@ public final class String
      *
      * @see  #equals(Object)
      */
+    /**
+     * 忽略大小写
+     */
     public boolean equalsIgnoreCase(String anotherString) {
         return (this == anotherString) ? true
                 : (anotherString != null)
@@ -1149,6 +1188,9 @@ public final class String
      *          is lexicographically less than the string argument; and a
      *          value greater than {@code 0} if this string is
      *          lexicographically greater than the string argument.
+     */
+    /**
+     * 按照字典顺序比较两个字符串
      */
     public int compareTo(String anotherString) {
         int len1 = value.length;
@@ -1234,6 +1276,9 @@ public final class String
      *          than this String, ignoring case considerations.
      * @see     java.text.Collator#compare(String, String)
      * @since   1.2
+     */
+    /**
+     * 按照字典序忽略大小写的比较字符串
      */
     public int compareToIgnoreCase(String str) {
         return CASE_INSENSITIVE_ORDER.compare(this, str);
@@ -2023,6 +2068,9 @@ public final class String
      * @return  a string that represents the concatenation of this object's
      *          characters followed by the string argument's characters.
      */
+    /**
+     * 将指定的字符串连接到该字符串的末尾。
+     */
     public String concat(String str) {
         int otherLen = str.length();
         if (otherLen == 0) {
@@ -2062,6 +2110,9 @@ public final class String
      * @param   newChar   the new character.
      * @return  a string derived from this string by replacing every
      *          occurrence of {@code oldChar} with {@code newChar}.
+     */
+    /**
+     * 先比较oldChar和newChar从前往后有没有相同的部分，有的话直接先copy前面相同的部分
      */
     public String replace(char oldChar, char newChar) {
         if (oldChar != newChar) {
@@ -2447,6 +2498,9 @@ public final class String
      * @see java.util.StringJoiner
      * @since 1.8
      */
+    /**
+     * 使用StringBuilder实现的使用delimiter（分隔符）将多个字符串连接起来
+     */
     public static String join(CharSequence delimiter, CharSequence... elements) {
         Objects.requireNonNull(delimiter);
         Objects.requireNonNull(elements);
@@ -2494,6 +2548,9 @@ public final class String
      * @see    #join(CharSequence,CharSequence...)
      * @see    java.util.StringJoiner
      * @since 1.8
+     */
+    /**
+     * 输入分隔符和一个字符串集合，返回连接之后的结果
      */
     public static String join(CharSequence delimiter,
             Iterable<? extends CharSequence> elements) {

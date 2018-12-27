@@ -4680,6 +4680,12 @@ class Character implements java.io.Serializable, Comparable<Character> {
      *         {@code false} otherwise.
      * @since  1.7
      */
+
+    /**
+     * 基本多文种平面（Basic Multilingual Plane, BMP），
+     * 或称第0平面或0号平面（Plane 0），是Unicode中的一个编码区块。
+     * 编码从U+0000至U+FFFF。
+     */
     public static boolean isBmpCodePoint(int codePoint) {
         return codePoint >>> 16 == 0;
         // Optimized form of:

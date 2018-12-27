@@ -2,7 +2,7 @@
 jdk1.8阅读顺序
 
 1. java.lang
- -  Object 1
+ - Object 1
  - String 1
  - AbstractStringBuilder 1
  - StringBuffer 1
