@@ -287,6 +287,9 @@ public final class Boolean implements java.io.Serializable,
      *         a value greater than {@code 0} if {@code x && !y}
      * @since 1.7
      */
+    /**
+     * 比较相同返回0 ，不同若x是true返回1 否则-1
+     */
     public static int compare(boolean x, boolean y) {
         return (x == y) ? 0 : (x ? 1 : -1);
     }

@@ -48,10 +48,16 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     /**
      * The value is used for character storage.
      */
+    /**
+     * value是用来存储字符串的
+     */
     char[] value;
 
     /**
      * The count is the number of characters used.
+     */
+    /**
+     * count是用来记录value中实际使用的字符数
      */
     int count;
 
@@ -145,6 +151,9 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      * @throws OutOfMemoryError if minCapacity is less than zero or
      *         greater than Integer.MAX_VALUE
      */
+    /**
+     * 扩容的过程 是原来的两倍+2
+     */
     private int newCapacity(int minCapacity) {
         // overflow-conscious code
         int newCapacity = (value.length << 1) + 2;
@@ -170,6 +179,9 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      * characters, then it may be resized to become more space efficient.
      * Calling this method may, but is not required to, affect the value
      * returned by a subsequent call to the {@link #capacity()} method.
+     */
+    /**
+     * 只保留实际使用的
      */
     public void trimToSize() {
         if (count < value.length) {
@@ -259,6 +271,9 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      *             argument is negative or not less than the length of this
      *             sequence.
      */
+    /**
+     * 返回对应字符的ASCII码
+     */
     public int codePointAt(int index) {
         if ((index < 0) || (index >= count)) {
             throw new StringIndexOutOfBoundsException(index);
@@ -286,6 +301,9 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      * @exception IndexOutOfBoundsException if the {@code index}
      *            argument is less than 1 or greater than the length
      *            of this sequence.
+     */
+    /**
+     * 返回前一个字符的ASCII码
      */
     public int codePointBefore(int index) {
         int i = index - 1;
@@ -315,6 +333,9 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      * is larger than the length of this sequence, or
      * {@code beginIndex} is larger than {@code endIndex}.
      */
+    /**
+     * 返回beginindex和endindex之间的字符数
+     */
     public int codePointCount(int beginIndex, int endIndex) {
         if (beginIndex < 0 || endIndex > count || beginIndex > endIndex) {
             throw new IndexOutOfBoundsException();
@@ -340,6 +361,9 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      *   or if {@code codePointOffset} is negative and the subsequence
      *   before {@code index} has fewer than the absolute value of
      *   {@code codePointOffset} code points.
+     */
+    /**
+     * 从给定的 index 处偏移 codePointOffset 个代码点的索引
      */
     public int offsetByCodePoints(int index, int codePointOffset) {
         if (index < 0 || index > count) {
@@ -376,6 +400,9 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      *             <li>{@code dstBegin+srcEnd-srcBegin} is greater than
      *             {@code dst.length}
      *             </ul>
+     */
+    /**
+     * 将value复制到dst数组dstBegin的位置之后
      */
     public void getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin)
     {

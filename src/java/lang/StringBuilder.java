@@ -73,6 +73,10 @@ package java.lang;
  * @see         java.lang.String
  * @since       1.5
  */
+
+/**
+ * StringBuilder与父类AbstractStringBuilder的区别在于增加了序列化，其他方法继承父类
+ */
 public final class StringBuilder
     extends AbstractStringBuilder
     implements java.io.Serializable, CharSequence

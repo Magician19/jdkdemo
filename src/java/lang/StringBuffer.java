@@ -94,6 +94,10 @@ import java.util.Arrays;
  * @see     java.lang.String
  * @since   JDK1.0
  */
+
+/**
+ * StringBuffer使用synchronized重写了父类AbstractStringBuilder的方法
+ */
  public final class StringBuffer
     extends AbstractStringBuilder
     implements java.io.Serializable, CharSequence
@@ -102,6 +106,10 @@ import java.util.Arrays;
     /**
      * A cache of the last value returned by toString. Cleared
      * whenever the StringBuffer is modified.
+     */
+    /**
+     * 保存上一次的value值 每次StringBuffer对象修改时清空
+     * transient修饰保证toStringCache在序列化的时候不被序列化
      */
     private transient char[] toStringCache;
 
@@ -681,6 +689,9 @@ import java.util.Arrays;
      * @serialField shared  boolean
      *              A flag indicating whether the backing array is shared.
      *              The value is ignored upon deserialization.
+     */
+    /**
+     * StringBuffer的可序列化字段 value count 和shared （shared反序列化的时候忽略）
      */
     private static final java.io.ObjectStreamField[] serialPersistentFields =
     {
