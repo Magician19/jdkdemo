@@ -185,21 +185,26 @@ import java.util.NoSuchElementException;
 public final class ServiceLoader<S>
     implements Iterable<S>
 {
-
+    // 需要加载的service实现的目录
     private static final String PREFIX = "META-INF/services/";
 
+    // 需要被加载的类或者接口
     // The class or interface representing the service being loaded
     private final Class<S> service;
 
+    // 加载的时候使用的类加载器的引用
     // The class loader used to locate, load, and instantiate providers
     private final ClassLoader loader;
 
+    // 权限控制上下文
     // The access control context taken when the ServiceLoader is created
     private final AccessControlContext acc;
 
+    // 基于实例的顺序缓存类的实现实例，其中Key为实现类的全限定类名
     // Cached providers, in instantiation order
     private LinkedHashMap<String,S> providers = new LinkedHashMap<>();
 
+    // 当前的"懒查找"迭代器，这个是ServiceLoader的核心
     // The current lazy-lookup iterator
     private LazyIterator lookupIterator;
 
@@ -256,11 +261,13 @@ public final class ServiceLoader<S>
         if (ln == null) {
             return -1;
         }
+        // 如果存在'#'字符，截取第一个'#'字符串之前的内容，'#'字符之后的属于注释内容
         int ci = ln.indexOf('#');
         if (ci >= 0) ln = ln.substring(0, ci);
         ln = ln.trim();
         int n = ln.length();
         if (n != 0) {
+            // 不能存在空格字符' '和特殊字符'\t'
             if ((ln.indexOf(' ') >= 0) || (ln.indexOf('\t') >= 0))
                 fail(service, u, lc, "Illegal configuration-file syntax");
             int cp = ln.codePointAt(0);
@@ -326,8 +333,11 @@ public final class ServiceLoader<S>
 
         Class<S> service;
         ClassLoader loader;
+        // 加载的资源的URL集合
         Enumeration<URL> configs = null;
+        // 所有需要加载的实现类的全限定类名的集合
         Iterator<String> pending = null;
+        // 下一个需要加载的实现类的全限定类名
         String nextName = null;
 
         private LazyIterator(Class<S> service, ClassLoader loader) {
@@ -341,6 +351,7 @@ public final class ServiceLoader<S>
             }
             if (configs == null) {
                 try {
+                    // 资源的名称，META-INF/services + '需要加载的类的全限定类名'
                     String fullName = PREFIX + service.getName();
                     if (loader == null)
                         configs = ClassLoader.getSystemResources(fullName);
@@ -378,6 +389,7 @@ public final class ServiceLoader<S>
             }
             try {
                 S p = service.cast(c.newInstance());
+                // 添加到providers，Key为实现类的全限定类名，Value为实现类的实例
                 providers.put(cn, p);
                 return p;
             } catch (Throwable x) {
@@ -468,12 +480,18 @@ public final class ServiceLoader<S>
             Iterator<Map.Entry<String,S>> knownProviders
                 = providers.entrySet().iterator();
 
+            /**
+             * 先从providers里面判断是否有下一个，没有通过懒加载判断
+             */
             public boolean hasNext() {
                 if (knownProviders.hasNext())
                     return true;
                 return lookupIterator.hasNext();
             }
 
+            /**
+             * 先从providers里面取下一个，没有通过懒加载取下一个
+             */
             public S next() {
                 if (knownProviders.hasNext())
                     return knownProviders.next().getValue();
