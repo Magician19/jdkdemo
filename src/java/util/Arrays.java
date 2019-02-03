@@ -44,6 +44,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
+ * sort()和asList()用的比较多 java8 加入的stream()方法
  * This class contains various methods for manipulating arrays (such as
  * sorting and searching). This class also contains a static factory
  * that allows arrays to be viewed as lists.

@@ -69,12 +69,14 @@ final class DualPivotQuicksort {
      * If the length of an array to be sorted is less than this
      * constant, Quicksort is used in preference to merge sort.
      */
+    // 数组长度小于286 使用快速排序而不是归并排序
     private static final int QUICKSORT_THRESHOLD = 286;
 
     /**
      * If the length of an array to be sorted is less than this
      * constant, insertion sort is used in preference to Quicksort.
      */
+    // 小于47 使用插入排序
     private static final int INSERTION_SORT_THRESHOLD = 47;
 
     /**
@@ -120,11 +122,13 @@ final class DualPivotQuicksort {
         int count = 0; run[0] = left;
 
         // Check if the array is nearly sorted
+        // 检查数组是不是接近有序
         for (int k = left; k < right; run[count] = k) {
             if (a[k] < a[k + 1]) { // ascending
                 while (++k <= right && a[k - 1] <= a[k]);
             } else if (a[k] > a[k + 1]) { // descending
                 while (++k <= right && a[k - 1] >= a[k]);
+                // 将数组倒置
                 for (int lo = run[count] - 1, hi = k; ++lo < --hi; ) {
                     int t = a[lo]; a[lo] = a[hi]; a[hi] = t;
                 }

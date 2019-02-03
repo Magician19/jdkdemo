@@ -35,6 +35,8 @@ import sun.misc.SharedSecrets;
 /**
  * This class implements a hash table, which maps keys to values. Any
  * non-<code>null</code> object can be used as a key or as a value. <p>
+ * 与hashMap的区别：继承的类不一样，不允许null，如果是null会抛异常，
+ * 基本上方法都是用synchronized修饰，初始大小为11，扩容变成2 * cap +1
  *
  * To successfully store and retrieve objects from a hashtable, the
  * objects used as keys must implement the <code>hashCode</code>

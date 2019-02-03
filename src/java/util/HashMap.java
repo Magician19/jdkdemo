@@ -44,7 +44,7 @@ import sun.misc.SharedSecrets;
  * unsynchronized and permits nulls.)  This class makes no guarantees as to
  * the order of the map; in particular, it does not guarantee that the order
  * will remain constant over time.
- *
+ * 与Hashtable大致相同，区别在于不是同步的（可能有线程安全问题）和允许null值
  * <p>This implementation provides constant-time performance for the basic
  * operations (<tt>get</tt> and <tt>put</tt>), assuming the hash function
  * disperses the elements properly among the buckets.  Iteration over
@@ -374,6 +374,9 @@ public class HashMap<K,V> extends AbstractMap<K,V>
 
     /**
      * Returns a power of two size for the given target capacity.
+     * 对n来说，二进制第一位肯定为1（忽略前面的0），与右移一位的结果做按位或操作
+     * 可以把前两位变成1，以此类推，最后所有位为1
+     * tableSizeFor操作的目的就是找出大于cap的下一个2的N次方
      */
     static final int tableSizeFor(int cap) {
         int n = cap - 1;
@@ -631,12 +634,15 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             tab[i] = newNode(hash, key, value, null);
         else {
             Node<K,V> e; K k;
+            // 发生碰撞，如果头结点是目标节点，则替换。
             if (p.hash == hash &&
                 ((k = p.key) == key || (key != null && key.equals(k))))
                 e = p;
             else if (p instanceof TreeNode)
+                // 节点是红黑树
                 e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
             else {
+                // 节点是链表
                 for (int binCount = 0; ; ++binCount) {
                     if ((e = p.next) == null) {
                         p.next = newNode(hash, key, value, null);
@@ -686,7 +692,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             }
             else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
                      oldCap >= DEFAULT_INITIAL_CAPACITY)
-                newThr = oldThr << 1; // double threshold
+                newThr = oldThr << 1; // double threshold 扩容两倍
         }
         else if (oldThr > 0) // initial capacity was placed in threshold
             newCap = oldThr;
@@ -709,15 +715,24 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 if ((e = oldTab[j]) != null) {
                     oldTab[j] = null;
                     if (e.next == null)
+                        // 没有发生hash冲突，将oldTab里面的节点e转移到newTab
                         newTab[e.hash & (newCap - 1)] = e;
                     else if (e instanceof TreeNode)
+                        // 如果oldTab里面的节点e已经是棵红黑树，
+                        // 和下面的链表操作一样，把红黑树拆分成两棵树，如果树的节点数目小于阈值，装换为链表。
                         ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
-                    else { // preserve order
+                    else { // preserve order 对链表进行操作
                         Node<K,V> loHead = null, loTail = null;
                         Node<K,V> hiHead = null, hiTail = null;
                         Node<K,V> next;
                         do {
                             next = e.next;
+                            // hashMap是数组加链表或者红黑树的结果
+                            // 在数组中的位置每次都是和e.hash & cap-1得到
+                            // 又每次扩容都是2倍，二进制的角度来看就是在前面增加了一位有效位
+                            // 所以通过e.hash & cap可以判断增加的那个有效位是0还是1
+                            // 如果是0说明e还在原位置，如果为1说明e的新索引位置为原位置加上原大小
+                            // 这里将原来的数组位置的一条链表分成两条（高位和低位）
                             if ((e.hash & oldCap) == 0) {
                                 if (loTail == null)
                                     loHead = e;

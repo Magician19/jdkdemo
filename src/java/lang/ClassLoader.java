@@ -61,6 +61,11 @@ import sun.reflect.misc.ReflectUtil;
 import sun.security.util.SecurityConstants;
 
 /**
+ * 类加载器（class loader）是一个负责加载JAVA类（classes）的对象，
+ * ClassLoader类是一个抽象类，需要给出类的二进制名称，
+ * class loader尝试定位或者产生一个class的数据，
+ * 一个典型的策略是把二进制名字转换成文件名然后到文件系统中找到该文件。
+ *
  * A class loader is an object that is responsible for loading classes. The
  * class <tt>ClassLoader</tt> is an abstract class.  Given the <a
  * href="#name">binary name</a> of a class, a class loader should attempt to
@@ -86,6 +91,7 @@ import sun.security.util.SecurityConstants;
  * <p> Class loaders may typically be used by security managers to indicate
  * security domains.
  *
+ *  delegation model  双亲委派模型
  * <p> The <tt>ClassLoader</tt> class uses a delegation model to search for
  * classes and resources.  Each instance of <tt>ClassLoader</tt> has an
  * associated parent class loader.  When requested to find a class or

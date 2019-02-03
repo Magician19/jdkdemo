@@ -41,6 +41,7 @@ import sun.util.calendar.Gregorian;
 import sun.util.calendar.ZoneInfo;
 
 /**
+ * 大部分方法被弃用，不推荐使用
  * The class <code>Date</code> represents a specific instant
  * in time, with millisecond precision.
  * <p>
@@ -143,6 +144,7 @@ public class Date
      * synch. Otherwise, fastTime is ignored, and cdate indicates the
      * time.
      */
+    // transient关键字保证实现了Serializable的类被传输的时候transient修饰的变量不被序列化
     private transient BaseCalendar.Date cdate;
 
     // Initialized just before the value is used. See parse().
