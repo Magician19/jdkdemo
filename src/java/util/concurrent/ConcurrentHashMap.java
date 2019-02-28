@@ -770,11 +770,13 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * The array of bins. Lazily initialized upon first insertion.
      * Size is always a power of two. Accessed directly by iterators.
      */
+    // 存放node的数组
     transient volatile Node<K,V>[] table;
 
     /**
      * The next table to use; non-null only while resizing.
      */
+    // 扩容时用于存放数据的变量，平时为null
     private transient volatile Node<K,V>[] nextTable;
 
     /**
@@ -782,6 +784,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * but also as a fallback during table initialization
      * races. Updated via CAS.
      */
+    // 通过CAS更新，记录容器的容量大小
     private transient volatile long baseCount;
 
     /**
@@ -792,16 +795,25 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * creation, or 0 for default. After initialization, holds the
      * next element count value upon which to resize the table.
      */
+     /**
+     * 控制标志符
+     * 负数: 代表正在进行初始化或扩容操作，其中-1表示正在初始化，-N 表示有N-1个线程正在进行扩容操作
+     * 正数或0: 代表hash表还没有被初始化，这个数值表示初始化或下一次进行扩容的大小，类似于扩容阈值
+     * 它的值始终是当前ConcurrentHashMap容量的0.75倍，这与loadfactor是对应的。
+     * 实际容量 >= sizeCtl，则扩容
+     */
     private transient volatile int sizeCtl;
 
     /**
      * The next table index (plus one) to split while resizing.
      */
+     // 下次transfer方法的起始下标index加上1之后的值
     private transient volatile int transferIndex;
 
     /**
      * Spinlock (locked via CAS) used when resizing and/or creating CounterCells.
      */
+     // CAS自旋锁标志位
     private transient volatile int cellsBusy;
 
     /**
@@ -941,6 +953,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                     return e.val;
             }
             else if (eh < 0)
+                // 如果该节点的hashCode小于0，则说明该位置上是一颗红黑树
                 return (p = e.find(h, key)) != null ? p.val : null;
             while ((e = e.next) != null) {
                 if (e.hash == h &&
@@ -1007,6 +1020,36 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /** Implementation for put and putIfAbsent */
+    /**
+     * 首先，计算记录的key的hashCode，然后计算table的index位置，
+     * 然后获取该index的值，如果该位置还为null，说明该位置上还没有记录，
+     * 则通过调用casTabAt方法来讲该新的记录插入到table的index位置上去，
+     * 否则，通过synchronized关键字对table的index位置加锁，需要注意的是，
+     * 当前线程只会锁住table的index位置，其他位置上没有锁住，
+     * 所以此时其他线程可以安全的获得其他的table位置来进行操作。
+     * 这也就提高了ConcurrentHashMap的并发度。
+     * 然后判断table的index位置上的第一个节点的hashCode值，这个节点要么是链表的头节点，
+     * 要么是红黑树的根节点，如果hashCode值小于0，那么就是一颗红黑树，
+     * 如果不小于0，那么就还是一条链表，如果是一条链表，
+     * 那么就寻找是否已经有记录的key和当前想要插入的记录是一致的，如果一致，
+     * 那么这次put的效果就是replace，否则，将该记录添加到链表中去。
+     * 如果是一颗红黑树，那么就通过调用putTreeVal方法来进行插入操作。
+     * 在插入操作完成之后，需要判断本次操作是否是更新操作，
+     * 如果是更新操作，则不会造成size的变化，否则，如果本次put操作时一次添加操作，
+     * 那么就需要进行更新size的操作，而size的更新涉及到并发环境，所以较为复杂，
+     * 并且table的扩容操作也会在更新size的时候发生，
+     * 如果在更新size之后发现table中的记录数量达到了阈值，就需要进行扩容操作，
+     * 这也是较为复杂的一步。还有一点需要说明的是，ConcurrentHashMap和HashMap的区别还有一点，
+     * 就是HashMap允许一个key和value为null，而ConcurrentHashMap则不允许key和value为null，
+     * 如果发现key或者value为null，则会抛出NPE，这一点需要特别注意，而这也说明，
+     * 在ConcurrentHashMap中可以通过使用get操作来测试是否具有某个记录，因为只要get方法返回null，
+     * 就说明table中必然不存在一个记录和当前查询的匹配，而在HashMap中，
+     * get操作返回null有可能是我们查询的记录的value就是null，所以不能使用get方法来测试某个记录是否存在于table中。
+     * @param key
+     * @param value
+     * @param onlyIfAbsent
+     * @return
+     */
     final V putVal(K key, V value, boolean onlyIfAbsent) {
         if (key == null || value == null) throw new NullPointerException();
         int hash = spread(key.hashCode());
@@ -2220,11 +2263,33 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     /**
      * Initializes table, using the size recorded in sizeCtl.
      */
+    /**
+     * sizeCtl是一个用于同步多个线程的共享变量，如果它的当前值为负数，
+     * 则说明table正在被某个线程初始化或者扩容，
+     * 所以，如果某个线程想要初始化table或者对table扩容，需要去竞争sizeCtl这个共享变量，
+     * 获得变量的线程才有许可去进行接下来的操作，没能获得的线程将会一直自旋来尝试获得这个共享变量，
+     * 所以获得sizeCtl这个变量的线程在完成工作之后需要设置回来，
+     * 使得其他的线程可以走出自旋进行接下来的操作。而在initTable方法中我们可以看到，
+     * 当线程发现sizeCtl小于0的时候，他就会让出CPU时间，而稍后再进行尝试，
+     * 当发现sizeCtl不再小于0的时候，就会通过调用方法compareAndSwapInt来讲sizeCtl共享变量变为-1，
+     * 以告诉其他试图获得sizeCtl变量的线程，目前正在由本线程在享用该变量，
+     * 在我完成我的任务之前你可以先休息一会，等会再来试试吧，我完成工作之后会释放掉的。
+     * 而其他的线程在发现sizeCtl小于0的时候就会理解这种交流，他们会让出cpu时间，
+     * 等待下次调度再来尝试获取sizeCtl来进行自己的工作。在完成初始化table的任务之后，
+     * 线程需要将sizeCtl设置成可以使得其他线程获得变量的状态，这其中还有一个地方需要注意，
+     * 就是在某个线程通过U.compareAndSwapInt方法设置了sizeCtl之前和之后进行了两次check，
+     * 来检测table是否被初始化过了，这种检测是必须的，因为在并发环境下，
+     * 可能前一个线程正在初始化table但是还没有成功初始化，也就是table依然还为null，
+     * 而有一个线程发现table为null他就会进行竞争sizeCtl以进行table初始化，但是当前线程在完成初始化之后，
+     * 那个试图初始化table的线程获得了sizeCtl，但是此时table已经被初始化了，
+     * 所以，如果没有再次判断的话，可能会将之后进行put操作的线程的更新覆盖掉，这是极为不安全的行为。
+     * @return
+     */
     private final Node<K,V>[] initTable() {
         Node<K,V>[] tab; int sc;
         while ((tab = table) == null || tab.length == 0) {
             if ((sc = sizeCtl) < 0)
-                Thread.yield(); // lost initialization race; just spin
+                Thread.yield(); // lost initialization race; just spin 竞争初始化失败，开始自旋
             else if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) {
                 try {
                     if ((tab = table) == null || tab.length == 0) {
@@ -2232,7 +2297,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                         @SuppressWarnings("unchecked")
                         Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n];
                         table = tab = nt;
-                        sc = n - (n >>> 2);
+                        sc = n - (n >>> 2); // sc变成n的3/4
                     }
                 } finally {
                     sizeCtl = sc;

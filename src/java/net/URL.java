@@ -45,6 +45,7 @@ import sun.security.util.SecurityConstants;
  * <a href=
  * "http://web.archive.org/web/20051219043731/http://archive.ncsa.uiuc.edu/SDG/Software/Mosaic/Demo/url-primer.html">
  * <i>Types of URL</i></a>
+ * URL代表的是统一资源定位符，一个URL对应的是网上的一个资源（一个目录，文件，或者是复杂对象）
  * <p>
  * In general, a URL can be broken into several parts. Consider the
  * following example:

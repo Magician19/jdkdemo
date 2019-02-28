@@ -713,6 +713,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             for (int j = 0; j < oldCap; ++j) {
                 Node<K,V> e;
                 if ((e = oldTab[j]) != null) {
+                    // 在扩容的时候会将原来的数据清理掉，多线程的情况下可能会出现数据丢失
                     oldTab[j] = null;
                     if (e.next == null)
                         // 没有发生hash冲突，将oldTab里面的节点e转移到newTab
