@@ -384,15 +384,19 @@ public abstract class AbstractQueuedSynchronizer
         static final Node EXCLUSIVE = null;
 
         /** waitStatus value to indicate thread has cancelled */
+        // 表示该节点需要被取消（gc回收）
         static final int CANCELLED =  1;
         /** waitStatus value to indicate successor's thread needs unparking */
+        // 如果节点状态为SIGNAL的时候，当这个节点释放的时候会通知唤醒它的后继节点
         static final int SIGNAL    = -1;
         /** waitStatus value to indicate thread is waiting on condition */
+        // 如果节点状态为CONDITION的时候，表示该节点进入等待队列，当其他线程调用了Condition的Signal()方法的时候进入同步队列
         static final int CONDITION = -2;
         /**
          * waitStatus value to indicate the next acquireShared should
          * unconditionally propagate
          */
+        // 共享模式下使用
         static final int PROPAGATE = -3;
 
         /**
@@ -584,6 +588,9 @@ public abstract class AbstractQueuedSynchronizer
      * @param node the node to insert
      * @return node's predecessor
      */
+    /**
+     * 将节点加入队尾
+     */
     private Node enq(final Node node) {
         for (;;) {
             Node t = tail;
@@ -606,10 +613,14 @@ public abstract class AbstractQueuedSynchronizer
      * @param mode Node.EXCLUSIVE for exclusive, Node.SHARED for shared
      * @return the new node
      */
+    /**
+     * 将节点加入等待队列
+     */
     private Node addWaiter(Node mode) {
         Node node = new Node(Thread.currentThread(), mode);
         // Try the fast path of enq; backup to full enq on failure
         Node pred = tail;
+        // 尝试直接放到队尾
         if (pred != null) {
             node.prev = pred;
             if (compareAndSetTail(pred, node)) {
@@ -617,6 +628,7 @@ public abstract class AbstractQueuedSynchronizer
                 return node;
             }
         }
+        // 使用enq()将节点加入队尾
         enq(node);
         return node;
     }
@@ -803,12 +815,14 @@ public abstract class AbstractQueuedSynchronizer
              * This node has already set status asking a release
              * to signal it, so it can safely park.
              */
+            // 如果前驱节点状态是SIGNAL的时候，表示当前驱节点释放的时候会通知后继节点
             return true;
         if (ws > 0) {
             /*
              * Predecessor was cancelled. Skip over predecessors and
              * indicate retry.
              */
+            // 如果前驱节点无效的时候，一直向前找到上一个有效的节点
             do {
                 node.prev = pred = pred.prev;
             } while (pred.waitStatus > 0);
@@ -858,11 +872,15 @@ public abstract class AbstractQueuedSynchronizer
      * @param arg the acquire argument
      * @return {@code true} if interrupted while waiting
      */
+    /**
+     * 在等待队列中获取资源
+     */
     final boolean acquireQueued(final Node node, int arg) {
         boolean failed = true;
         try {
             boolean interrupted = false;
             for (;;) {
+                // 如果该节点的前驱节点是头节点而且尝试去获取资源成功，将该节点置为头节点，原来的头节点释放
                 final Node p = node.predecessor();
                 if (p == head && tryAcquire(arg)) {
                     setHead(node);
@@ -870,9 +888,10 @@ public abstract class AbstractQueuedSynchronizer
                     failed = false;
                     return interrupted;
                 }
+                // 获取资源失败，如果可以开始休息了，进入waiting状态
                 if (shouldParkAfterFailedAcquire(p, node) &&
                     parkAndCheckInterrupt())
-                    interrupted = true;
+                    interrupted = true; // 如果有出现中断，记录标志
             }
         } finally {
             if (failed)
